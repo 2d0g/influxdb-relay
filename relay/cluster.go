@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/sumaig/toolkits/consistent"
+    "github.com/sumaig/toolkits/consistent"
 )
 
 var (

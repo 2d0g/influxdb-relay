@@ -6,38 +6,11 @@ default-retention-policy = "autogen"
 
 [http.output]
 a = [
-        { name="influxdb1", location = "http://influxdb1:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="influxdb2", location = "http://influxdb2:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="kapacitor1", location = "http://kapacitor1:9092", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
+        { name="influxdb1", location = "http://192.168.128.105:9122", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
     ]
 
 b = [
-        { name="influxdb1", location = "http://influxdb1:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="influxdb2", location = "http://influxdb2:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="kapacitor1", location = "http://kapacitor1:9092", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-    ]
-
-c = [
-        { name="influxdb1", location = "http://influxdb1:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="influxdb2", location = "http://influxdb2:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="kapacitor1", location = "http://kapacitor1:9092", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
+        { name="influxdb1", location = "http://192.168.128.105:9122", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
     ]
 
 [http.former]
-a = [
-        { name="influxdb1", location = "http://influxdb1:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="influxdb2", location = "http://influxdb2:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="kapacitor1", location = "http://kapacitor1:9092", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-    ]
-
-b = [
-        { name="influxdb1", location = "http://influxdb1:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="influxdb2", location = "http://influxdb2:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="kapacitor1", location = "http://kapacitor1:9092", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-    ]
-
-c = [
-        { name="influxdb1", location = "http://influxdb1:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="influxdb2", location = "http://influxdb2:8086", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-        { name="kapacitor1", location = "http://kapacitor1:9092", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
-    ]
