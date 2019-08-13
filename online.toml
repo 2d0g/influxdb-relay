@@ -10,7 +10,7 @@ a = [
     ]
 
 b = [
-        { name="influxdb1", location = "http://192.168.128.105:9122", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
+        { name="influxdb1", location = "http://192.168.128.105:9123", buffer-size-mb = 8192, max-batch-kb = 500, max-delay-interval = "10s" },
     ]
 
 [http.former]

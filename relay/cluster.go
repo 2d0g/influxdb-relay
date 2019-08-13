@@ -13,8 +13,11 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+    "hash/crc32"
+    "sort"
 
     "github.com/sumaig/toolkits/consistent"
+    "github.com/influxdata/influxdb/models"
 )
 
 var (
@@ -23,23 +26,13 @@ var (
 )
 
 func ScanKey(point []byte) (key string, err error) {
-	var keyBuf [100]byte
-	keySlice := keyBuf[0:0]
-	bufLen := len(point)
-	for i := 0; i < bufLen; i++ {
-		c := point[i]
-		switch c {
-		case '\\':
-			i++
-			keySlice = append(keySlice, point[i])
-		case ' ', ',':
-			key = string(keySlice)
-			return
-		default:
-			keySlice = append(keySlice, c)
-		}
-	}
-	return "", io.EOF
+    points, _ := models.ParsePointsWithPrecision(point, time.Now().UTC(), "s")
+    if len(points) == 0 {
+	    return "", io.EOF
+    }
+    line := points[0].String()
+    measurementTags := strings.Split(line, " ")[0]
+    return measurementTags, nil
 }
 
 type InfluxCluster struct {
@@ -50,7 +43,7 @@ type InfluxCluster struct {
 	defaultTags    map[string]string
 	ring           *consistent.Map
 	formerRing     *consistent.Map
-	nodes          map[string][]*HttpBackend
+	nodes          [][]*HttpBackend
 	formerNodes    map[string][]*HttpBackend
 }
 
@@ -72,22 +65,28 @@ func NewInfluxCluster(cfg HTTPConfig) *InfluxCluster {
 	ic := new(InfluxCluster)
 
 	ic.stats = &Statistics{}
-	ic.nodes = make(map[string][]*HttpBackend)
+	ic.nodes = [][]*HttpBackend{}
 	ic.ring = consistent.New(cfg.Replicas, nil)
 	ic.ticker = time.NewTicker(time.Duration(5) * time.Second)
 
-	for k, v := range cfg.Outputs {
-		ic.ring.Add(k)
+    outputs := cfg.Outputs
+
+    keys := make([]string, len(outputs))
+    for k := range outputs {
+        keys = append(keys, k)
+    }
+    sort.Strings(keys)
+
+	for _, k := range keys {
+        v := outputs[k]
+		// ic.ring.Add(k)
 		for _, b := range v {
+            fmt.Printf("backend: %v\n", b)
 			backend, err := NewHttpBackend(&b)
 			if err != nil {
 				continue
 			}
-			if _, ok := ic.nodes[k]; !ok {
-				ic.nodes[k] = []*HttpBackend{backend}
-			} else {
-				ic.nodes[k] = append(ic.nodes[k], backend)
-			}
+			ic.nodes = append(ic.nodes, []*HttpBackend{backend})
 		}
 	}
 
@@ -190,7 +189,8 @@ func (ic *InfluxCluster) Query(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	node := ic.ring.Get(key)
+	// node := ic.ring.Get(key)
+    node := ic.HashKey(key) % uint32(len(ic.nodes))
 
 	pn := getBuf()
 	po := getBuf()
@@ -294,6 +294,15 @@ func (ic *InfluxCluster) Write(p []byte, query, auth string) {
 	}
 }
 
+func (ic *InfluxCluster) HashKey(key string) uint32 {
+    if len(key) < 64 {
+        var scratch [64]byte
+        copy(scratch[:], key)
+        return crc32.ChecksumIEEE(scratch[:len(key)])
+    }
+    return crc32.ChecksumIEEE([]byte(key))
+}
+
 // Wrong in one row will not stop others.
 // So don't try to return error, just print it.
 func (ic *InfluxCluster) WriteRow(line []byte, query, auth string) {
@@ -313,8 +322,9 @@ func (ic *InfluxCluster) WriteRow(line []byte, query, auth string) {
 		return
 	}
 
-	c := ic.ring.Get(key)
-
+	//c := ic.ring.Get(key)
+    c := ic.HashKey(key) % uint32(len(ic.nodes))
+    // fmt.Printf("key: %s, idx: %s", key, c)
 	for _, b := range ic.nodes[c] {
 		if !b.Active || b == nil {
 			continue
